@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:meal_app/models/meal.dart';
 import 'package:meal_app/screens/categories.dart';
+import 'package:meal_app/screens/filters.dart';
 import 'package:meal_app/screens/meals.dart';
+import 'package:meal_app/widgets/main_drawer.dart';
 
 class TabScreen extends StatefulWidget {
   const TabScreen({super.key});
@@ -13,6 +15,12 @@ class TabScreen extends StatefulWidget {
 class _TabScreenState extends State<TabScreen> {
   int _selectedPageIndex = 0;
   final List<Meal> _favoriteMeal = [];
+  Map<Filter, bool> _selectedFilter = {
+    Filter.lactoseFree: false,
+    Filter.glutenFree: false,
+    Filter.vegan: false,
+    Filter.vegetarian: false,
+  };
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).clearSnackBars();
@@ -41,6 +49,18 @@ class _TabScreenState extends State<TabScreen> {
     });
   }
 
+  void _setScreen(String identifier) async {
+    Navigator.of(context).pop();
+    if (identifier == 'filters') {
+      final result = await Navigator.of(context).push<Map<Filter, bool>>(
+        MaterialPageRoute(
+          builder: (ctx) => const FiltersScreen(),
+        ),
+      );
+      print(result);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget activePage = CategoriesScreen(
@@ -56,6 +76,9 @@ class _TabScreenState extends State<TabScreen> {
     }
 
     return Scaffold(
+      drawer: MainDrawer(
+        onSelectScreen: _setScreen,
+      ),
       appBar: AppBar(
         title: Text(activePageTitle),
       ),
