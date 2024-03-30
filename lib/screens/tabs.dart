@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:meal_app/data/dumy_data.dart';
 import 'package:meal_app/models/meal.dart';
 import 'package:meal_app/screens/categories.dart';
 import 'package:meal_app/screens/filters.dart';
 import 'package:meal_app/screens/meals.dart';
 import 'package:meal_app/widgets/main_drawer.dart';
+
+const kInitialFilters = {
+  Filter.lactoseFree: false,
+  Filter.glutenFree: false,
+  Filter.vegan: false,
+  Filter.vegetarian: false,
+};
 
 class TabScreen extends StatefulWidget {
   const TabScreen({super.key});
@@ -15,12 +23,7 @@ class TabScreen extends StatefulWidget {
 class _TabScreenState extends State<TabScreen> {
   int _selectedPageIndex = 0;
   final List<Meal> _favoriteMeal = [];
-  Map<Filter, bool> _selectedFilter = {
-    Filter.lactoseFree: false,
-    Filter.glutenFree: false,
-    Filter.vegan: false,
-    Filter.vegetarian: false,
-  };
+  Map<Filter, bool> _selectedFilter = kInitialFilters;
 
   void _showMessage(String message) {
     ScaffoldMessenger.of(context).clearSnackBars();
@@ -54,16 +57,37 @@ class _TabScreenState extends State<TabScreen> {
     if (identifier == 'filters') {
       final result = await Navigator.of(context).push<Map<Filter, bool>>(
         MaterialPageRoute(
-          builder: (ctx) => const FiltersScreen(),
+          builder: (ctx) => FiltersScreen(
+            currentFilters: _selectedFilter,
+          ),
         ),
       );
-      print(result);
+      setState(() {
+        _selectedFilter = result ?? kInitialFilters;
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final availableMeals = dummyMeals.where((meal) {
+      if (_selectedFilter[Filter.glutenFree]! && meal.isGlutenFree) {
+        return false;
+      }
+      if (_selectedFilter[Filter.lactoseFree]! && meal.isLactoseFree) {
+        return false;
+      }
+      if (_selectedFilter[Filter.vegan]! && meal.isVegan) {
+        return false;
+      }
+      if (_selectedFilter[Filter.vegetarian]! && meal.isVegetarian) {
+        return false;
+      }
+      return true;
+    }).toList();
+
     Widget activePage = CategoriesScreen(
+      availableMeals: availableMeals,
       onToggleFavorite: _toggleFavoriteMealStatus,
     );
     var activePageTitle = "Categories";
